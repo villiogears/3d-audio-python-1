@@ -357,19 +357,19 @@ def run():
 					# replace microphone input with silence but keep shape/channel count
 					audio = np.zeros_like(audio)
 				else:
-				# If output is stereo, apply processing
-				if out_ch == 2:
-					with azimuth_lock:
-						tgt = target_azimuth['val']
-					current_az = (1.0 - smoothing_alpha) * current_az + smoothing_alpha * tgt
-					mono = audio.mean(axis=1)
-					if use_hrtf['val']:
-						if not hasattr(run, '_hrtf'):
-							run._hrtf = HRTFProcessor(rate=RATE)
-						stereo = run._hrtf.process(mono, azimuth=current_az)
-					else:
-						stereo = binaural.process(mono, azimuth=current_az)
-					audio = stereo
+					# If output is stereo, apply processing
+					if out_ch == 2:
+						with azimuth_lock:
+							tgt = target_azimuth['val']
+						current_az = (1.0 - smoothing_alpha) * current_az + smoothing_alpha * tgt
+						mono = audio.mean(axis=1)
+						if use_hrtf['val']:
+							if not hasattr(run, '_hrtf'):
+								run._hrtf = HRTFProcessor(rate=RATE)
+							stereo = run._hrtf.process(mono, azimuth=current_az)
+						else:
+							stereo = binaural.process(mono, azimuth=current_az)
+						audio = stereo
 
 			output_stream.write(audio.astype(np.float32).tobytes())
 	except KeyboardInterrupt:
