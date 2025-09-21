@@ -416,9 +416,9 @@ class Audio3DControl(ctk.CTk):
 			self, text="出力に立体音響を適用", variable=self.output_var)
 		self.output_checkbox.pack(pady=10)
 
+		self.monitor_var = ctk.BooleanVar(value=False)
 		self.monitor_checkbox = ctk.CTkCheckBox(
-			self, text="マイクを出力で聞く（モニター）", variable=ctk.BooleanVar(value=False))
-		# bind this checkbox manually to global state
+			self, text="マイクを出力で聞く（モニター）", variable=self.monitor_var)
 		self.monitor_checkbox.pack(pady=10)
 
 		self.status_label = ctk.CTkLabel(self, text="")
@@ -427,25 +427,16 @@ class Audio3DControl(ctk.CTk):
 		self.input_var.trace_add("write", self.update_status)
 		self.output_var.trace_add("write", self.update_status)
 		# monitor checkbox state update
-		self.monitor_checkbox.configure(command=self._toggle_monitor)
+		self.monitor_var.trace_add("write", self.update_status)
 
 	def update_status(self, *args):
 		# グローバル状態に反映
 		audio3d_state['input'] = self.input_var.get()
 		audio3d_state['output'] = self.output_var.get()
+		audio3d_state['monitor_mic'] = bool(self.monitor_var.get())
 		status = f"入力: {'ON' if self.input_var.get() else 'OFF'} / 出力: {'ON' if self.output_var.get() else 'OFF'} / マイク監視: {'ON' if audio3d_state['monitor_mic'] else 'OFF'}"
 		self.status_label.configure(text=status)
 
-	def _toggle_monitor(self):
-		# toggle the global monitor state from the checkbox
-		# the checkbox uses an internal variable we can query via get() on the widget
-		try:
-			val = self.monitor_checkbox.get()
-		except Exception:
-			# fallback: read label text (shouldn't happen)
-			val = False
-		audio3d_state['monitor_mic'] = bool(val)
-		self.update_status()
 
 if __name__ == "__main__":
 	# Start audio processing in a background thread and run GUI in the main thread
